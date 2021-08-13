@@ -17,9 +17,16 @@ public class TestController {
 
     @GetMapping("/test")
     public void test(){
-        Query query = new StringQuery(QueryBuilders.termQuery("year",1999).toString());
+        Query query = new StringQuery(QueryBuilders.termQuery("_id","0aDwPHsBtmFMIBayNxLr").toString());
         SearchHits<Movies> searchHits = elasticsearchOperations.search(query, Movies.class);
-        System.out.println(searchHits.stream().toString());
+
+        searchHits.stream().forEach(e-> {
+            Movies movies = e.getContent();
+            System.out.println(e);
+            System.out.println(movies);
+        });
+
+        System.out.println(1);
     }
 
 }
