@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.learn.elastic.mapper.BlogCourseMapper">
+  <resultMap id="BaseResultMap" type="com.learn.elastic.model.BlogCourse">
+    <id column="course_id" jdbcType="INTEGER" property="courseId" />
+    <result column="course_name" jdbcType="VARCHAR" property="courseName" />
+    <result column="lan_id" jdbcType="INTEGER" property="lanId" />
+    <result column="course_value" jdbcType="VARCHAR" property="courseValue" />
+    <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    course_id, course_name, lan_id, course_value, is_delete
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from blog_course
+    where course_id = #{courseId,jdbcType=INTEGER}
+  </select>
+  <select id="selectCourseList" resultType="com.learn.elastic.model.BlogCourse">
+    select  * from blog_course
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from blog_course
+    where course_id = #{courseId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" keyColumn="course_id" keyProperty="courseId" parameterType="com.learn.elastic.model.BlogCourse" useGeneratedKeys="true">
+    insert into blog_course (course_name, lan_id, course_value,
+      is_delete)
+    values (#{courseName,jdbcType=VARCHAR}, #{lanId,jdbcType=INTEGER}, #{courseValue,jdbcType=VARCHAR},
+      #{isDelete,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" keyColumn="course_id" keyProperty="courseId" parameterType="com.learn.elastic.model.BlogCourse" useGeneratedKeys="true">
+    insert into blog_course
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="courseName != null">
+        course_name,
+      </if>
+      <if test="lanId != null">
+        lan_id,
+      </if>
+      <if test="courseValue != null">
+        course_value,
+      </if>
+      <if test="isDelete != null">
+        is_delete,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="courseName != null">
+        #{courseName,jdbcType=VARCHAR},
+      </if>
+      <if test="lanId != null">
+        #{lanId,jdbcType=INTEGER},
+      </if>
+      <if test="courseValue != null">
+        #{courseValue,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null">
+        #{isDelete,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.learn.elastic.model.BlogCourse">
+    update blog_course
+    <set>
+      <if test="courseName != null">
+        course_name = #{courseName,jdbcType=VARCHAR},
+      </if>
+      <if test="lanId != null">
+        lan_id = #{lanId,jdbcType=INTEGER},
+      </if>
+      <if test="courseValue != null">
+        course_value = #{courseValue,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null">
+        is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
+    </set>
+    where course_id = #{courseId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.learn.elastic.model.BlogCourse">
+    update blog_course
+    set course_name = #{courseName,jdbcType=VARCHAR},
+      lan_id = #{lanId,jdbcType=INTEGER},
+      course_value = #{courseValue,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=INTEGER}
+    where course_id = #{courseId,jdbcType=INTEGER}
+  </update>
+</mapper>
