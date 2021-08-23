@@ -1,12 +1,12 @@
 package com.learn.elastic.controller;
 
+import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learn.elastic.document.Movies;
 import com.learn.elastic.mapper.BlogCourseMapper;
 import com.learn.elastic.model.BlogCourse;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.*;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -31,9 +31,13 @@ public class TestController {
 
     @GetMapping("/test")
     public List<Movies> test(){
+
+        MatchPhraseQueryBuilder phraseQueryBuilder = QueryBuilders.matchPhraseQuery("year",1998);
+
         Query query = new StringQuery(QueryBuilders.termQuery("year",1999).toString());
         //指定具体字段进行查询
 //        query.setFields(List.of("year"));
+
 
         SearchHits<Movies> searchHits = elasticsearchOperations.search(query, Movies.class);
 
@@ -48,9 +52,12 @@ public class TestController {
 
 
     @GetMapping("/put")
-    public void test2(){
+    public void test2() throws JsonProcessingException {
 
         IndexOperations indexOperations = elasticsearchOperations.indexOps(BlogCourse.class);
+
+        System.out.println(new ObjectMapper().writeValueAsString(indexOperations.getMapping()));
+
         if(!indexOperations.exists()){
             indexOperations.createWithMapping();
         }
@@ -71,7 +78,7 @@ public class TestController {
 
         List<IndexedObjectInformation> informationList = elasticsearchOperations.bulkIndex(indexQueryList,BlogCourse.class);
 
-        System.out.println(informationList.toString());
+        System.out.println(JSONObject.toJSONString(informationList));
     }
 
 
@@ -80,21 +87,25 @@ public class TestController {
 
 
 
-//        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(QueryBuilders.termQuery("courseName","C++ 友元类(遥控器-电视机)")).build();
+        //termQuery 要加keyword
+        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(QueryBuilders.termQuery("courseName.keyword","C++ 友元类(遥控器-电视机)")).build();
+
+//        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(QueryBuilders.matchPhraseQuery("courseName","C++ 友元类(遥控器-电视机)")).build();
+
 
 
 //        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(QueryBuilders.queryStringQuery("C++ 友元类(遥控器-电视机)")).build();
 
 
-        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(QueryBuilders.simpleQueryStringQuery("C++ 友元类(遥控器-电视机)")).build();
+//        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(QueryBuilders.simpleQueryStringQuery("C++ 友元类(遥控器-电视机)")).build();
 
 //        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(QueryBuilders.matchQuery("courseName","C++ 友元类(遥控器-电视机)")).build();
 
-//        SearchHits<BlogCourse> searchHits = elasticsearchOperations.search(query,BlogCourse.class, IndexCoordinates.of("blog-course"));
-//
-//        searchHits.forEach(e->{
-//            System.out.println(e.getContent().getCourseName());
-//        });
+        SearchHits<BlogCourse> searchHits = elasticsearchOperations.search(query,BlogCourse.class, IndexCoordinates.of("blog-course"));
+
+        searchHits.forEach(e->{
+            System.out.println(e.getContent().getCourseName());
+        });
 
 //        BlogCourse blogCourse = elasticsearchOperations.get("1",BlogCourse.class);
 //
