@@ -2,10 +2,11 @@ package com.learn.elastic.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learn.elastic.document.Movies;
 import com.learn.elastic.mapper.BlogCourseMapper;
 import com.learn.elastic.model.BlogCourse;
+import org.apache.lucene.queryparser.xml.builders.ConstantScoreQueryBuilder;
+import org.apache.lucene.search.ConstantScoreQuery;
 import org.elasticsearch.index.query.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.*;
@@ -14,10 +15,12 @@ import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 
 @RestController
 public class TestController {
@@ -34,9 +37,10 @@ public class TestController {
 
         MatchPhraseQueryBuilder phraseQueryBuilder = QueryBuilders.matchPhraseQuery("year",1998);
 
+
         Query query = new StringQuery(QueryBuilders.termQuery("year",1999).toString());
         //指定具体字段进行查询
-//        query.setFields(List.of("year"));
+//        query.setFields(List.of("year"))
 
 
         SearchHits<Movies> searchHits = elasticsearchOperations.search(query, Movies.class);
@@ -56,11 +60,11 @@ public class TestController {
 
         IndexOperations indexOperations = elasticsearchOperations.indexOps(BlogCourse.class);
 
-        System.out.println(new ObjectMapper().writeValueAsString(indexOperations.getMapping()));
 
         if(!indexOperations.exists()){
             indexOperations.createWithMapping();
         }
+
 
 
 
@@ -83,12 +87,16 @@ public class TestController {
 
 
     @GetMapping("/get")
-    public void test3(){
+    public void test3() throws IOException {
 
 
 
         //termQuery 要加keyword
-        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(QueryBuilders.termQuery("courseName.keyword","C++ 友元类(遥控器-电视机)")).build();
+        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(
+                QueryBuilders.constantScoreQuery(QueryBuilders.termQuery("courseName.keyword","C++ 友元类(遥控器-电视机)"))).build();
+
+
+
 
 //        NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(QueryBuilders.matchPhraseQuery("courseName","C++ 友元类(遥控器-电视机)")).build();
 
@@ -130,12 +138,26 @@ public class TestController {
         System.out.println(s);
 
 
+        BoolQueryBuilder boolQueryBuilder =  QueryBuilders.boolQuery();
+        //必须匹配，贡献算分
+        boolQueryBuilder.must(QueryBuilders.matchQuery("courseName","友元类"));
+        //选择性匹配，贡献算分
+//        boolQueryBuilder.should(QueryBuilders.matchQuery("courseName","C++"));
+
+//        boolQueryBuilder.mustNot(QueryBuilders.matchQuery("courseId",16));
+
+//        boolQueryBuilder.filter(QueryBuilders.matchQuery("courseName","C++ 友元类(遥控器-电视机)"));
+
+        SearchHits<BlogCourse> searchHits1 = elasticsearchOperations.search(new NativeSearchQueryBuilder()
+                .withQuery(QueryBuilders.constantScoreQuery(boolQueryBuilder)).build(),BlogCourse.class);
+
+
+        searchHits1.forEach(e-> System.out.println("分数："+e.getScore()+ "内容："+ JSONObject.toJSONString(e.getContent().getCourseName())));
 
 
 
-
-
-
+       SearchHits<BlogCourse> searchHits2 =  elasticsearchOperations.search(new NativeSearchQueryBuilder()
+                .withQuery(QueryBuilders.boostingQuery(QueryBuilders.matchQuery("courseName","友元类"),QueryBuilders.matchQuery("courseId",1))).build(),BlogCourse.class);
 
 
 

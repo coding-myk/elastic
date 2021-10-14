@@ -16,18 +16,19 @@ import org.springframework.data.elasticsearch.core.geo.GeoJsonPoint;
 @Data
 @Document(indexName = "blog-course",createIndex = true)
 @Setting(sortFields = {"courseId"},sortModes = Setting.SortMode.max, sortOrders = {Setting.SortOrder.desc})
-@Mapping
+//@Mapping(mappingPath = "es/mapping/blog-course.json")
 public class BlogCourse implements Serializable{
 
     @Id
+
     @Field(name = "courseId",type = FieldType.Long)
     private Integer courseId;
 
     //指定其分词器
-    @Field(name = "courseName",type = FieldType.Nested)
+    @Field(name = "courseName",type = FieldType.Auto)
     private String courseName;
 
-    @Field(name = "lanId",type = FieldType.Long)
+    @Field(name = "lanId",type = FieldType.Auto)
     private Integer lanId;
 
     @Field(name = "courseValue",type = FieldType.Text)

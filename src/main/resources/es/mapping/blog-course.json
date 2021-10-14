@@ -1,0 +1,31 @@
+{
+  "properties" : {
+    "_class" : {
+      "type" : "keyword",
+      "index" : false,
+      "doc_values" : false
+    },
+    "courseId" : {
+      "type" : "keyword"
+    },
+    "courseName" : {
+      "type" : "text",
+      "fields" : {
+        "keyword" : {
+          "type" : "keyword",
+          "ignore_above" : 256
+        }
+      }
+    },
+    "courseValue" : {
+      "type" : "text"
+    },
+    "isDelete" : {
+      "type" : "integer"
+    },
+    "lanId" : {
+      "type" : "long"
+    }
+  }
+}
+
