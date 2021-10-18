@@ -150,17 +150,27 @@ public class TestController {
 
         SearchHits<BlogCourse> searchHits1 = elasticsearchOperations.search(new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.constantScoreQuery(boolQueryBuilder)).build(),BlogCourse.class);
-
-
         searchHits1.forEach(e-> System.out.println("分数："+e.getScore()+ "内容："+ JSONObject.toJSONString(e.getContent().getCourseName())));
 
 
+        //返回与positive匹配的文档，同时减少与negative查询匹配的文档的相关性得分。
+        //可以使用boosting 查询降级某些文档，而不将它们从搜索结果中排除。
 
+       BoostingQueryBuilder boostingQueryBuilder = QueryBuilders.boostingQuery(QueryBuilders.matchQuery("courseName","友元类"),
+                QueryBuilders.matchQuery("courseName","C++"));
+       boostingQueryBuilder.negativeBoost(1f);
        SearchHits<BlogCourse> searchHits2 =  elasticsearchOperations.search(new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.boostingQuery(QueryBuilders.matchQuery("courseName","友元类"),QueryBuilders.matchQuery("courseId",1))).build(),BlogCourse.class);
+                .withQuery(boostingQueryBuilder).build(),BlogCourse.class);
+        searchHits2.forEach(e-> System.out.println(e.getScore()+"\r\n"));
 
 
+       //取算分最高的的计算得分
 
+//        DisMaxQueryBuilder disMaxQueryBuilder = QueryBuilders.disMaxQuery();
+//        disMaxQueryBuilder.add(QueryBuilders.matchQuery("courseId",1));
+//        disMaxQueryBuilder.add(QueryBuilders.matchQuery("courseName","友元类"));
+//        SearchHits<BlogCourse> searchHits3 = elasticsearchOperations.search(new NativeSearchQueryBuilder().withQuery(disMaxQueryBuilder).build(),BlogCourse.class);
+//        searchHits3.forEach(e-> System.out.println(e.getScore()+"\r\n"));
 
 
     }
